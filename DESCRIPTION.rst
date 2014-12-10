@@ -1,5 +1,5 @@
-A sample Python project
-=======================
+Blogging Command-Line App
+=====================
 
 This is the description file for the project.
 
