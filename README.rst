@@ -4,9 +4,9 @@ Simple Blogging Application
 
 **How to install code:**
 
-  git clone https://github.com/shitalp/blog
-  cd blog    
-  sudo python3 setup.py install
+    git clone https://github.com/shitalp/blog
+    cd blog
+    sudo python3 setup.py install
  
 
 **Edit Configuration file**
