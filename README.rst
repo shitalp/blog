@@ -4,13 +4,11 @@ Simple Blogging Application
 
 **How to install code:**
 
-1.code-block:: bash
+1.git clone https://github.com/shitalp/blog
   
-2.git clone https://github.com/shitalp/blog
+2.cd blog    
   
-3.cd blog    
-  
-4.sudo python3 setup.py install
+3.sudo python3 setup.py install
 
 **How to run code:**
   
