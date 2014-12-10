@@ -35,6 +35,8 @@ class MyAppBaseController(CementBaseController):
 
     class Meta:
         label = 'base'
+
+
 class Controller1(AbstractBaseController):
     class Meta:
         label = 'post'
