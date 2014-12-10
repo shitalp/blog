@@ -2,7 +2,7 @@
 from cement.core.foundation import CementApp
 from cement.core.controller import CementBaseController, expose
 from cement.core import handler
-import pymysql
+import sqlite3 #Import the SQLite3 module
 import re
 
 class AbstractBaseController(CementBaseController):
@@ -18,17 +18,9 @@ class AbstractBaseController(CementBaseController):
         super(AbstractBaseController, self)._setup(base_app)
         try:
         # add a common object that will be used in any sub-class
-           with open("/etc/blog/blog.cfg")as file:
-            text=file.read()
-            mapping=re.findall(r'DB_USER.*',text)
-            user=mapping[0].split('\'')[2]
-            mapping=re.findall(r'DB_HOST.*',text)
-            host=mapping[0].split('\'')[2]
-            mapping=re.findall(r'DB_PASSWORD.*',text)
-            password=mapping[0].split('\'')[2]
-            mapping=re.findall(r'DB_NAME.*',text)
-            db=mapping[0].split('\'')[2]
-            self.db=pymysql.connect(host,user,password,db)
+          
+
+            self.db = sqlite3.connect('blog.db') 
             cursor=self.db.cursor()
             cursor.execute("create table if not exists post(id int,post_title varchar(500),post_content varchar(500),primary key(id))")
             cursor.execute("create table if not exists category(name varchar(500),cat_id int,primary key(cat_id))")
