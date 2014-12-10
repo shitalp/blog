@@ -4,7 +4,6 @@ Simple Blogging Application
 
 **How to install code:**
 
-<<<<<<< HEAD
   1.code-block:: bash
   2.git clone https://github.com/shitalp/blog
   3.cd blog    
