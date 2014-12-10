@@ -1,4 +1,5 @@
-1.first download blogzip file and then install it by using following command.
+1.first download blog file from https://github.com/shitalp/blog
+  and then unzip it and install it by using following command.
   sudo python3 setup.py install
 2.Edit file by using: 
    vim /etc/blog/blog.cfg
