@@ -26,4 +26,4 @@ Simple Blogging Application
 
 3.wget https://raw.githubusercontent.com/lehmannro/assert.sh/master/assert.sh
 
-  4.bash test.sh
+4.bash test.sh
