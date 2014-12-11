@@ -16,19 +16,17 @@ class AbstractBaseController(CementBaseController):
 
     def _setup(self, base_app):
         super(AbstractBaseController, self)._setup(base_app)
-        try:
+       
         # add a common object that will be used in any sub-class
           
 
-            self.db = sqlite3.connect('blog.db') 
-            cursor=self.db.cursor()
-            cursor.execute("create table if not exists post(id int,post_title varchar(500),post_content varchar(500),primary key(id))")
-            cursor.execute("create table if not exists category(name varchar(500),cat_id int,primary key(cat_id))")
-            cursor.execute("create table if not exists post_category(id int,cat_id int)")
-        except:
-          print("cant connect to datbase ..check your conncetion")
+        self.db = sqlite3.connect('blog.db') 
+        cursor=self.db.cursor()
+        cursor.execute("create table if not exists post(id int PRIMARY KEY AUTOINCREMENT,post_title varchar(500),post_content varchar(500))")
+        cursor.execute("create table if not exists category(name varchar(500),cat_id int PRIMARY KEY AUTOINCREMENT )")
+        cursor.execute("create table if not exists post_category(id int ,cat_id int)")
         
-          self.cursor = dict()
+        self.cursor = dict()
 
 
 class MyAppBaseController(CementBaseController):
@@ -58,25 +56,26 @@ class Controller1(AbstractBaseController):
         cursor=self.db.cursor()
         cursor.execute("select max(id)+1 from post")
         id=cursor.fetchone()
-        cursor.execute('''insert into post(id,post_content,post_title)values(%s,%s,%s)''',(id,self.app.pargs.extra_arguments[0],self.app.pargs.extra_arguments[1]))
+        cursor.execute('''insert into post(id,post_content,post_title)values(?,?,?)''',(id,self.app.pargs.extra_arguments[0],self.app.pargs.extra_arguments[1]))
         cursor=self.db.cursor()
         cursor.execute("select id,post_title,post_content from post")
         print("Post Added")
         if self.app.pargs.usercat:
             cursor=self.db.cursor()
-            cursor.execute("select cat_id from category where name=%s",self.app.pargs.usercat)
+            cursor.execute("select cat_id from category where name=?",self.app.pargs.usercat)
             cat_id=cursor.fetchone()
             # Cat is not present in DB
             if cat_id==None:
                 cursor.execute("select max(cat_id)+1 from category")
                 cat_id=cursor.fetchone()
                 cursor=self.db.cursor()
-                cursor.execute('''insert into category(name,cat_id)values(%s,%s)''',(self.app.pargs.usercat,cat_id))
-                cursor.execute("insert into post_category(id,cat_id)values(%s,%s)",(id,cat_id));
+                cursor.execute('''insert into category(name,cat_id)values(?,?)''',(self.app.pargs.usercat,cat_id))
+                cursor.execute("insert into post_category(id,cat_id)values(?,?)",(id,cat_id));
 
             print("Catogry assigned to post")
      except:
-            cursor.execute('''insert into post(id,post_content,post_title)values(%s,%s,%s)''',(1,self.app.pargs.extra_arguments[0],self.app.pargs.extra_arguments[1]))
+            cursor.execute('''insert into post(id,post_content,post_title)values(?,?,?)''',(1,self.app.pargs.extra_arguments[0],self.app.pargs.extra_arguments[1]))
+     
             self.db.commit()
             self.db.close()
 
@@ -120,10 +119,10 @@ class Controller2(AbstractBaseController):
         cat_id=cursor.fetchone()
         print("name: %s" % self.app.pargs.extra_arguments[0])
         cursor=self.db.cursor()
-        cursor.execute('''insert into category(name,cat_id)values(%s,%s)''',(self.app.pargs.extra_arguments[0],cat_id))
+        cursor.execute('''insert into category(name,cat_id)values(?,?)''',(self.app.pargs.extra_arguments[0],cat_id))
     
      except:
-        cursor.execute('''insert into category(name,cat_id)values(%s,%s)''',(self.app.pargs.extra_arguments[0],1))
+        cursor.execute('''insert into category(name,cat_id)values(?,?)''',(self.app.pargs.extra_arguments[0],1))
         
      self.db.commit();
      self.db.close()
@@ -153,7 +152,7 @@ class Controller2(AbstractBaseController):
                 cursor.execute("select id,cat_id from post_catagory where id=%s and cat_id=%s",(self.app.pargs.extra_arguments[1],self.app.pargs.extra_arguments[0]))
                 data=cursor.fetchone()
                 if data==None:
-                    cursor.execute("insert into post_catagory(id,cat_id)values(%s,%s)",(self.app.pargs.extra_arguments[1],self.app.pargs.extra_arguments[0]));
+                    cursor.execute("insert into post_catagory(id,cat_id)values(?,?)",(self.app.pargs.extra_arguments[1],self.app.pargs.extra_arguments[0]));
                     print("Catogry assigned to post")
                 else:
                     print("Catogry is allready assigned to post")
