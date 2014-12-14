@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from sqlalchemy.engine import create_engine
+
 from cement.core.foundation import CementApp
 from cement.core.controller import CementBaseController, expose
 from cement.core import handler
