@@ -1,9 +1,19 @@
 #!/usr/bin/python3
+from sqlalchemy.engine import create_engine
 from cement.core.foundation import CementApp
 from cement.core.controller import CementBaseController, expose
 from cement.core import handler
-import sqlite3 
 import re
+from sqlalchemy import create_engine
+from sqlalchemy import MetaData, Column, Table
+from sqlalchemy import Integer, String
+from sqlalchemy.sql import select
+from sqlalchemy.sql import and_
+from sqlalchemy.sql import or_
+class MyAppBaseController(CementBaseController):
+
+    class Meta:
+        label = 'base'
 
 class AbstractBaseController(CementBaseController):
 
@@ -16,18 +26,25 @@ class AbstractBaseController(CementBaseController):
 
     def _setup(self, base_app):
         super(AbstractBaseController, self)._setup(base_app)
-        self.db = sqlite3.connect('blog.db')       
-        cursor=self.db.cursor()
-        cursor.execute("create table if not exists post(id INTEGER PRIMARY KEY AUTOINCREMENT,post_title varchar(500),post_content varchar(500))")
-        cursor.execute("create table if not exists category(name varchar(500),cat_id INTEGER PRIMARY KEY AUTOINCREMENT)")
-        cursor.execute("create table if not exists post_category(id INTEGER PRIMARY KEY AUTOINCREMENT,cat_id INTEGER PRIMARY KEY AUTOINCREMENT)")
-        self.cursor = dict()
+        self.engine = create_engine('sqlite:///tutorial.db',echo=False)
+        metadata = MetaData(bind=self.engine)
+        self.category_table = Table('category', metadata,
+                    Column('name', String(40)),
+                    Column('cat_id', Integer, primary_key=True),
+                    )
+        self.post_table = Table('post', metadata,
+                    Column('id', Integer, primary_key=True),
+                    Column('post_title', String(40)),
+                    Column('post_content',String(40))
+                    )
+        self.post_category_table = Table('post_category', metadata,
+                    Column('id', Integer, primary_key=True),
+                    Column('cat_id', Integer, primary_key=True),
+                    )
+        
+        # create tables in database
+        metadata.create_all()
 
-
-class MyAppBaseController(CementBaseController):
-
-    class Meta:
-        label = 'base'
 class Controller1(AbstractBaseController):
     class Meta:
         label = 'post'
@@ -45,41 +62,40 @@ class Controller1(AbstractBaseController):
     def add(self):
      
         print("post_content : %s" % self.app.pargs.extra_arguments[0])
-        print("post_title: %s" % self.app.pargs.extra_arguments[1])    
-        cursor=self.db.cursor()
-        cursor.execute("insert into post(post_content,post_title)values(?,?)",(self.app.pargs.extra_arguments[0],self.app.pargs.extra_arguments[1],))
-        cursor=self.db.cursor()
-        cursor.execute("select id,post_title,post_content from post")
+        print("post_title: %s" % self.app.pargs.extra_arguments[1])  
+        ins = self.post_table.insert()
+        result = self.engine.execute(ins, post_title=self.app.pargs.extra_arguments[0],post_content=self.app.pargs.extra_arguments[1])
+        s = select([self.post_table])
         print("Post Added")
         if self.app.pargs.usercat:
-            cursor=self.db.cursor()
-            cursor.execute("select cat_id from category where name=?",(self.app.pargs.usercat,))
-            cat_id=cursor.fetchone()
-            # Cat is not present in DB
-            if cat_id==None:
-                
-                cursor=self.db.cursor()
-                cursor.execute("insert into category(name)values(?)",(self.app.pargs.usercat,))
-                cursor.execute("insert into post_category values(,)")
-
-            print("Catogry assigned to post")
-            self.db.commit()
-            self.db.close()
+           conn = self.engine.connect()
+           cat_id= select([self.category_table],self.category_table.c.cat_id==self.app.pargs.usercat)
+           # Cat is not present in DB
+           if cat_id==None:
+              ins = self.category_table.insert()
+              result = self.engine.execute(ins, name=self.app.pargs.usercat)
+              ins = self.post_category_table.insert()
+              
+              result = self.engine.execute(ins, id=self.app.pargs.extra_arguments[1],cat_id=self.app.pargs.extra_arguments[0])   
+           print("Catogry assigned to post")
 
     @expose()
     def search(self):
         print("String : %s" % self.app.pargs.extra_arguments[0])
-        cursor=self.db.cursor()
-        cursor.execute("select id,post_title,post_content from post where post_title=? OR post_content=? ",(self.app.pargs.extra_arguments[0],self.app.pargs.extra_arguments[0],))
-        print(cursor.fetchall())
-        self.db.close()
+        data = select([self.post_table],or_(self.post_table.c.post_title==self.app.pargs.extra_arguments[0], self.post_table.c.post_content==self.app.pargs.extra_arguments[0]))
+        result = data.execute()
+        for row in result:
+          print(row)
+    
 
     @expose()
     def list(self):
-        cursor=self.db.cursor()
-        cursor.execute("select id,post_title,post_content from post")
-        print(cursor.fetchall())
-        self.db.close()
+        s = select([self.post_table])
+        result = s.execute()
+        for row in result:
+          print(row)
+    
+        
 
 class Controller2(AbstractBaseController):
     class Meta:
@@ -98,45 +114,32 @@ class Controller2(AbstractBaseController):
 
     @expose()
     def add(self):
-        cursor=self.db.cursor()
-        
-        print("name: %s" % self.app.pargs.extra_arguments[0])
-        cursor=self.db.cursor()
-        cursor.execute("insert into category(name)values(?)",(self.app.pargs.extra_arguments[0],))
-        self.db.commit();
-        self.db.close()
-
-
+       
+       print("name : %s" % self.app.pargs.extra_arguments[0])
+       ins = self.category_table.insert()
+       result = self.engine.execute(ins, name=self.app.pargs.extra_arguments[0])
+       
+       
 
     @expose()
     def list(self):
-        cursor=self.db.cursor()
-        cursor.execute("select name,cat_id from category")
-        print(cursor.fetchall())
-        self.db.close()
+        s = select([self.category_table])
+        result = s.execute()
+        for row in result:
+          print(row)
+    
 
+    @expose()
     def assign(self):
-        cursor=self.db.cursor()
-        cursor.execute("select cat_id from category where cat_id=?",self.app.pargs.extra_arguments[0])
-        data=cursor.fetchone()
+       
+        data= select([self.category_table],self.category_table.c.cat_id==self.app.pargs.extra_arguments[0])
+        print("Catogry is  assigned to post")            
+       
         if data==None:
-            print("Catogary not exist")
-        else:
-            cursor.execute("select id from post where id=%s",self.app.pargs.extra_arguments[1])
-            data=cursor.fetchone()
-            if data==None:
-                print("Post not exist")
-            else:
-                # You need to create third table
-                cursor.execute("select id,cat_id from post_catagory where id=%s and cat_id=%s",(self.app.pargs.extra_arguments[1],self.app.pargs.extra_arguments[0]))
-                data=cursor.fetchone()
-                if data==None:
-                    cursor.execute("insert into post_catagory(id,cat_id)values(%s,%s)",(self.app.pargs.extra_arguments[1],self.app.pargs.extra_arguments[0]));
-                    print("Catogry assigned to post")
-                else:
-                    print("Catogry is allready assigned to post")
-
-
+           print("Catogary not exist")
+           data= select([self.post_table],self.post_table.c.id==self.app.pargs.extra_arguments[1])
+           print("Catogry is allready assigned to post")            
+       
 
 def main():
     app = CementApp('blog')
@@ -144,6 +147,7 @@ def main():
     # register controllers handlers
     handler.register(MyAppBaseController)
     handler.register(Controller1)
+
     handler.register(Controller2)
 
     app.setup()
