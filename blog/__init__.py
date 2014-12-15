@@ -1,20 +1,24 @@
 #!/usr/bin/python3
-
 from cement.core.foundation import CementApp
 from cement.core.controller import CementBaseController, expose
 from cement.core import handler
 import re
+from cement.core import backend, foundation, controller, handler
 from sqlalchemy import create_engine
 from sqlalchemy import MetaData, Column, Table
 from sqlalchemy import Integer, String
 from sqlalchemy.sql import select
 from sqlalchemy.sql import and_
 from sqlalchemy.sql import or_
-class MyAppBaseController(CementBaseController):
+class MyAppBaseController(controller.CementBaseController):
 
     class Meta:
         label = 'base'
-
+    
+    @controller.expose(help="base controller default command", hide=True)
+    def default(self):
+         self.app.args.parse_args(['--help'])
+       
 class AbstractBaseController(CementBaseController):
 
     class Meta:
@@ -23,6 +27,8 @@ class AbstractBaseController(CementBaseController):
         arguments = [
             ( ['-f', '--foo'], dict(help='notorious foo option')),
             ]
+        
+
 
     def _setup(self, base_app):
         super(AbstractBaseController, self)._setup(base_app)
