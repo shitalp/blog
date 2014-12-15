@@ -66,7 +66,7 @@ class Controller1(AbstractBaseController):
 
     @expose()
     def add(self):
-     
+     try:
         print("post_content : %s" % self.app.pargs.extra_arguments[0])
         print("post_title: %s" % self.app.pargs.extra_arguments[1])  
         ins = self.post_table.insert()
@@ -84,7 +84,8 @@ class Controller1(AbstractBaseController):
               
               result = self.engine.execute(ins, id=self.app.pargs.extra_arguments[1],cat_id=self.app.pargs.extra_arguments[0])   
            print("Catogry assigned to post")
-
+     except:
+           print("please pass argument to add post")
     @expose()
     def search(self):
         print("String : %s" % self.app.pargs.extra_arguments[0])
