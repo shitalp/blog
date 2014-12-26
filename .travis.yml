@@ -1,0 +1,17 @@
+language: python
+python:
+  - "3.2"
+  - "3.3"
+  - "3.4"
+  # does not have headers provided, please ask https://launchpad.net/~pypy/+archive/ppa
+  # maintainers to fix their pypy-dev package.
+  
+# command to install dependencies
+install:
+  - pip3 install setup.py
+# command to run tests
+script: 
+  - cd tests
+  - wget https://raw.githubusercontent.com/lehmannro/assert.sh/master/assert.sh
+  - bash tests.sh
+
