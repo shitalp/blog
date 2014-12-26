@@ -9,7 +9,7 @@ python:
 # command to install dependencies
 install:
   - cd blog
-  - pip3 setup.py install
+  - python3 setup.py install
 # command to run tests
 script: 
   - cd tests
